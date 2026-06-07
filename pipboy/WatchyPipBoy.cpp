@@ -66,7 +66,7 @@ void WatchyPipBoy::drawTime(){
     if(HOUR_12_24==12){
       displayHour = ((currentTime.Hour+11)%12)+1;
     } else {
-      displayHour = currentTime.Hour;
+      displayHour = ((currentTime.Hour+11)%12)+1;
     }
     if(displayHour < 10){
         display.print("0");
@@ -91,6 +91,7 @@ void WatchyPipBoy::drawDate(){
     int16_t  x1, y1;
     uint16_t w, h;
     String dayOfWeek = dayStr(currentTime.Wday);
+
     dayOfWeek.toUpperCase();
     display.setTextColor(DARKMODE ? GxEPD_BLACK : GxEPD_WHITE);
     display.getTextBounds(dayOfWeek, 7, 42, &x1, &y1, &w, &h);
@@ -130,21 +131,21 @@ void WatchyPipBoy::drawSteps(){
     display.print(stepCount);
 }
 
-void WatchyPipBoy::drawBattery(){
+void WatchyPipBoy::drawBattery(){                                                                                                                                                                            
     display.drawBitmap(10, 150, battery, 37, 21, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
     display.fillRect(15, 155, 27, 11, DARKMODE ? GxEPD_BLACK : GxEPD_WHITE);//clear battery segments
     int8_t batteryLevel = 0;
     float VBAT = getBatteryVoltage();
-    if(VBAT > 4.1){
+    if(VBAT > 3.90){
         batteryLevel = 3;
     }
-    else if(VBAT > 3.95 && VBAT <= 4.1){
+    else if(VBAT > 3.6 && VBAT <= 3.9){
         batteryLevel = 2;
-    }
-    else if(VBAT > 3.80 && VBAT <= 3.95){
+    }               
+    else if(VBAT > 3.20 && VBAT <= 3.6){
         batteryLevel = 1;
     }
-    else if(VBAT <= 3.80){
+    else if(VBAT <= 3.20){
         batteryLevel = 0;
     }
 
