@@ -16,32 +16,65 @@ const uint8_t PAGES[] = {0, 1, 2, 3};
 RTC_DATA_ATTR uint8_t vaultBoyNum;
 
 void WatchyPipBoy::drawWatchFace(){
-    //top menu bar
     display.fillScreen(DARKMODE ? GxEPD_BLACK : GxEPD_WHITE);
-    display.setFont(&monofonto8pt7b);
-    display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
-    display.setCursor(22, 14);
-    display.print("STAT  INV  DATA  MAP");
-    display.drawBitmap(0, 10, menubar, 200, 9, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
 
+    //top menu bar
+    drawTopBar();
+
+    switch (CURRENT_PAGE) {
+        case 0:
+            drawStatPage();
+            break;
+        case 1:
+            drawInvPage();
+            break;
+        case 2:
+            drawDataPage();
+            break;
+        case 3:
+            drawMapPage();
+            break;
+        default:
+            drawStatPage();
+            break;
+    }
     //bottom text
-    display.setFont(&monofonto8pt7b);
-    display.setCursor(10, 195);
-    display.println(CURRENT_PAGE);
-    //display.println("PIP-BOY 3000 ROBCO IND.");
+    drawBottomText();
 
-    drawTime();
-    drawDate();
-    drawSteps();
-    drawWeather();
-    drawBattery();
+
     // display.drawBitmap(120, 77, WIFI_CONFIGURED ? wifi : wifioff, 26, 18, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
     // if(BLE_CONFIGURED){
     //     display.drawBitmap(100, 75, bluetooth, 13, 21, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
     // }
 }
 
-void WatchyPipBoy::drawTime(){
+// All Pages
+void WatchyPipBoy::drawTopBar() {
+    display.setFont(&monofonto8pt7b);
+    display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+    display.setCursor(22, 14);
+    display.print("STAT  INV  DATA  MAP");
+}
+
+void WatchyPipBoy::drawBottomText() {
+    display.setFont(&monofonto8pt7b);
+    display.setCursor(10, 195);
+    display.println(CURRENT_PAGE);
+    //display.println("PIP-BOY 3000 ROBCO IND.");
+}
+
+// Stat Page
+void WatchyPipBoy::drawStatPage() {
+    display.drawBitmap(0, 10, menu_stats, 200, 9, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+
+    drawStatPageTime();
+    drawStatPageDate();
+    drawStatPageSteps();
+    drawStatPageWeather();
+    drawStatPageBattery();
+}
+
+void WatchyPipBoy::drawStatPageTime(){
 
     //draw random vault boy every 15mins
     if(currentTime.Minute % 15 == 0){
@@ -89,7 +122,7 @@ void WatchyPipBoy::drawTime(){
     display.print(currentTime.Hour < 11 ? "AM" : "PM");
 }
 
-void WatchyPipBoy::drawDate(){
+void WatchyPipBoy::drawStatPageDate(){
 
     display.setFont(&monofonto10pt7b);
     int16_t  x1, y1;
@@ -113,7 +146,7 @@ void WatchyPipBoy::drawDate(){
     display.print(tmYearToCalendar(currentTime.Year));
 }
 
-void WatchyPipBoy::drawSteps(){
+void WatchyPipBoy::drawStatPageSteps(){
     // reset step counter at midnight
     if (currentTime.Hour == 0 && currentTime.Minute == 0){
       sensor.resetStepCounter();
@@ -135,7 +168,7 @@ void WatchyPipBoy::drawSteps(){
     display.print(stepCount);
 }
 
-void WatchyPipBoy::drawBattery(){                                                                                                                                                                            
+void WatchyPipBoy::drawStatPageBattery(){                                                                                                                                                                            
     display.drawBitmap(10, 150, battery, 37, 21, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
     display.fillRect(15, 155, 27, 11, DARKMODE ? GxEPD_BLACK : GxEPD_WHITE);//clear battery segments
     int8_t batteryLevel = 0;
@@ -158,7 +191,7 @@ void WatchyPipBoy::drawBattery(){
     }
 }
 
-void WatchyPipBoy::drawWeather(){
+void WatchyPipBoy::drawStatPageWeather(){
 
     weatherData currentWeather = getWeatherData();
 
@@ -194,6 +227,35 @@ void WatchyPipBoy::drawWeather(){
     }else
     return;
     display.drawBitmap(5, 85, weatherIcon, WEATHER_ICON_WIDTH, WEATHER_ICON_HEIGHT, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+}
+
+// Inv Page
+void WatchyPipBoy::drawInvPage() {
+    display.drawBitmap(0, 10, menu_inv, 200, 9, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+
+    display.setCursor(10, 60);
+    display.setFont(&monofonto8pt7b);
+    display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+    display.setCursor(150, 160);
+    display.print("Inv Page");
+}
+
+// Data Page
+void WatchyPipBoy::drawDataPage() {
+    display.setCursor(10, 60);
+    display.setFont(&monofonto8pt7b);
+    display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+    display.setCursor(150, 160);
+    display.print("Data Page");
+}
+
+// Map Page
+void WatchyPipBoy::drawMapPage() {
+    display.setCursor(10, 60);
+    display.setFont(&monofonto8pt7b);
+    display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+    display.setCursor(150, 160);
+    display.print("Map Page");
 }
 
 void WatchyPipBoy::changePage(int8_t pageChange) {
