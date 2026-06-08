@@ -6,6 +6,13 @@
 const uint8_t WEATHER_ICON_WIDTH = 48;
 const uint8_t WEATHER_ICON_HEIGHT = 32;
 
+RTC_DATA_ATTR uint8_t CURRENT_PAGE = 0;
+// 0 = STAT
+// 1 = INV
+// 2 = DATA
+// 3 = MAP
+const uint8_t PAGES[] = {0, 1, 2, 3};
+
 RTC_DATA_ATTR uint8_t vaultBoyNum;
 
 void WatchyPipBoy::drawWatchFace(){
@@ -20,7 +27,8 @@ void WatchyPipBoy::drawWatchFace(){
     //bottom text
     display.setFont(&monofonto8pt7b);
     display.setCursor(10, 195);
-    display.println("PIP-BOY 3000 ROBCO IND.");
+    display.println(CURRENT_PAGE);
+    //display.println("PIP-BOY 3000 ROBCO IND.");
 
     drawTime();
     drawDate();
@@ -62,12 +70,8 @@ void WatchyPipBoy::drawTime(){
     display.setFont(&monofonto28pt7b);
     display.setCursor(141, 75);
 
-    int displayHour;
-    if(HOUR_12_24==12){
-      displayHour = ((currentTime.Hour+11)%12)+1;
-    } else {
-      displayHour = ((currentTime.Hour+11)%12)+1;
-    }
+    int displayHour = ((currentTime.Hour+11)%12)+1;
+
     if(displayHour < 10){
         display.print("0");
     }
@@ -190,4 +194,30 @@ void WatchyPipBoy::drawWeather(){
     }else
     return;
     display.drawBitmap(5, 85, weatherIcon, WEATHER_ICON_WIDTH, WEATHER_ICON_HEIGHT, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+}
+
+void WatchyPipBoy::changePage(int8_t pageChange) {
+    const uint8_t numPages = sizeof(PAGES) / sizeof(PAGES[0]);
+
+    CURRENT_PAGE = (CURRENT_PAGE + pageChange + numPages) % numPages;
+}
+
+void WatchyPipBoy::handleButtonPress() {
+    Watchy::handleButtonPress();
+
+    if (guiState != WATCHFACE_STATE) return;
+
+    uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
+
+    if (wakeupBit & UP_BTN_MASK) {
+        changePage(1);
+        showWatchFace(false);
+        return;
+    }
+
+    if (wakeupBit & DOWN_BTN_MASK) {
+        changePage(-1);
+        showWatchFace(false);
+        return;
+    }
 }
