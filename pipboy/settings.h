@@ -4,7 +4,7 @@
 //Weather Settings
 #define CITY_ID "2647074" //https://openweathermap.org/current#cityid
 #define OPENWEATHERMAP_APIKEY "" //use your own API key :)
-#define OPENWEATHERMAP_URL "http://api.openweathermap.org/data/2.5/weather?id={cityID}&units={units}&appid={apiKey}" //open weather api
+#define OPENWEATHERMAP_URL "http://api.openweathermap.org/data/2.5/weather?id={cityID}&units=metric&appid={apiKey}" //open weather api
 #define TEMP_UNIT "metric" //metric = Celsius , imperial = Fahrenheit
 #define TEMP_LANG "en"
 #define WEATHER_UPDATE_INTERVAL 30 //must be greater than 5, measured in minutes

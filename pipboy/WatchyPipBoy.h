@@ -12,12 +12,24 @@
 class WatchyPipBoy : public Watchy{
     using Watchy::Watchy;
     public:
+        void drawTopBar();
+        void drawBottomText();
+        void drawEars(char * string, uint8_t x_offset);
+
+        void drawStatPage();
         void drawWatchFace();
-        void drawTime();
-        void drawDate();
-        void drawSteps();
-        void drawWeather();
-        void drawBattery();
+        void drawStatPageTime();
+        void drawStatPageDate();
+        void drawStatPageSteps();
+        void drawStatPageBattery();
+        void drawStatPageWeather();
+
+        void drawInvPage();
+        void drawDataPage();
+        void drawMapPage();
+
+        void changePage(int8_t pageChange);
+        void handleButtonPress() override;
 };
 
 #endif

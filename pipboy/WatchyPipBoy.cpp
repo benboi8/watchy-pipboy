@@ -5,35 +5,90 @@
 
 const uint8_t WEATHER_ICON_WIDTH = 48;
 const uint8_t WEATHER_ICON_HEIGHT = 32;
+const uint8_t EAR_OFFSET = 3;
+
+RTC_DATA_ATTR uint8_t CURRENT_PAGE = 0;
+// 0 = STAT
+// 1 = INV
+// 2 = DATA
+// 3 = MAP
+const uint8_t PAGES[] = {0, 1, 2, 3};
 
 RTC_DATA_ATTR uint8_t vaultBoyNum;
 
 void WatchyPipBoy::drawWatchFace(){
-    //top menu bar
     display.fillScreen(DARKMODE ? GxEPD_BLACK : GxEPD_WHITE);
-    display.setFont(&monofonto8pt7b);
-    display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
-    display.setCursor(22, 14);
-    display.print("STAT  INV  DATA  MAP");
-    display.drawBitmap(0, 10, menubar, 200, 9, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
 
+    //top menu bar
+    drawTopBar();
+
+    switch (CURRENT_PAGE) {
+        case 0:
+            drawStatPage();
+            break;
+        case 1:
+            drawInvPage();
+            break;
+        case 2:
+            drawDataPage();
+            break;
+        case 3:
+            drawMapPage();
+            break;
+        default:
+            drawStatPage();
+            break;
+    }
     //bottom text
-    display.setFont(&monofonto8pt7b);
-    display.setCursor(10, 195);
-    display.println("PIP-BOY 3000 ROBCO IND.");
+    drawBottomText();
 
-    drawTime();
-    drawDate();
-    drawSteps();
-    drawWeather();
-    drawBattery();
+
     // display.drawBitmap(120, 77, WIFI_CONFIGURED ? wifi : wifioff, 26, 18, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
     // if(BLE_CONFIGURED){
     //     display.drawBitmap(100, 75, bluetooth, 13, 21, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
     // }
 }
 
-void WatchyPipBoy::drawTime(){
+// All Pages
+void WatchyPipBoy::drawTopBar() {
+    display.setFont(&monofonto8pt7b);
+    display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+    display.setCursor(22, 14);
+    display.print("STAT  INV  DATA  MAP");
+}
+
+void WatchyPipBoy::drawBottomText() {
+    display.setFont(&monofonto8pt7b);
+    display.setCursor(10, 195);
+    display.println("PIP-BOY 3000 ROBCO IND.");
+}
+
+void WatchyPipBoy::drawEars(char * string, uint8_t x_offset) {
+    int16_t  x1, y1;
+    uint16_t w, h;
+    display.getTextBounds(string, x_offset, 14, &x1, &y1, &w, &h);
+
+    uint8_t line_height = y1+h+4;
+
+    // left
+    display.drawBitmap(x1-6-EAR_OFFSET, y1+6, left_ear, 6, 9, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+    display.drawLine(0, line_height, x1-EAR_OFFSET-6, line_height, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK); 
+    // right
+    display.drawBitmap(x1+w+EAR_OFFSET, y1+6, right_ear, 6, 9, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+    display.drawLine(x1+w+5+EAR_OFFSET, line_height, 200, line_height, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK); 
+}
+// Stat Page
+// Time, Date, Weather, Battery
+void WatchyPipBoy::drawStatPage() {
+    drawEars("STAT", 22);
+    drawStatPageTime();
+    drawStatPageDate();
+    drawStatPageSteps();
+    drawStatPageWeather();
+    drawStatPageBattery();
+}
+
+void WatchyPipBoy::drawStatPageTime(){
 
     //draw random vault boy every 15mins
     if(currentTime.Minute % 15 == 0){
@@ -62,12 +117,8 @@ void WatchyPipBoy::drawTime(){
     display.setFont(&monofonto28pt7b);
     display.setCursor(141, 75);
 
-    int displayHour;
-    if(HOUR_12_24==12){
-      displayHour = ((currentTime.Hour+11)%12)+1;
-    } else {
-      displayHour = ((currentTime.Hour+11)%12)+1;
-    }
+    int displayHour = ((currentTime.Hour+11)%12)+1;
+
     if(displayHour < 10){
         display.print("0");
     }
@@ -85,7 +136,7 @@ void WatchyPipBoy::drawTime(){
     display.print(currentTime.Hour < 11 ? "AM" : "PM");
 }
 
-void WatchyPipBoy::drawDate(){
+void WatchyPipBoy::drawStatPageDate(){
 
     display.setFont(&monofonto10pt7b);
     int16_t  x1, y1;
@@ -109,7 +160,7 @@ void WatchyPipBoy::drawDate(){
     display.print(tmYearToCalendar(currentTime.Year));
 }
 
-void WatchyPipBoy::drawSteps(){
+void WatchyPipBoy::drawStatPageSteps(){
     // reset step counter at midnight
     if (currentTime.Hour == 0 && currentTime.Minute == 0){
       sensor.resetStepCounter();
@@ -123,15 +174,15 @@ void WatchyPipBoy::drawSteps(){
     display.fillRect(60+13, 155+5, (progress/2)+5, 4, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
 
     //show step count
-    display.setFont(&monofonto8pt7b);
-    display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
-    display.setCursor(150, 160);
-    display.print("STEPS");
-    display.setCursor(150, 175);
-    display.print(stepCount);
+    // display.setFont(&monofonto8pt7b);
+    // display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+    // display.setCursor(150, 160);
+    // display.print("STEPS");
+    // display.setCursor(150, 175);
+    // display.print(stepCount);
 }
 
-void WatchyPipBoy::drawBattery(){                                                                                                                                                                            
+void WatchyPipBoy::drawStatPageBattery(){                                                                                                                                                                            
     display.drawBitmap(10, 150, battery, 37, 21, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
     display.fillRect(15, 155, 27, 11, DARKMODE ? GxEPD_BLACK : GxEPD_WHITE);//clear battery segments
     int8_t batteryLevel = 0;
@@ -154,7 +205,7 @@ void WatchyPipBoy::drawBattery(){
     }
 }
 
-void WatchyPipBoy::drawWeather(){
+void WatchyPipBoy::drawStatPageWeather(){
 
     weatherData currentWeather = getWeatherData();
 
@@ -190,4 +241,65 @@ void WatchyPipBoy::drawWeather(){
     }else
     return;
     display.drawBitmap(5, 85, weatherIcon, WEATHER_ICON_WIDTH, WEATHER_ICON_HEIGHT, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+}
+
+// Inv Page
+// Alarm, Adjust Steps target
+void WatchyPipBoy::drawInvPage() {
+    drawEars("INV", 70);
+    display.setCursor(10, 60);
+    display.setFont(&monofonto8pt7b);
+    display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+    display.setCursor(150, 160);
+    display.print("Inv Page");
+}
+
+// Data Page
+// More Battery, steps, general info
+void WatchyPipBoy::drawDataPage() {
+    drawEars("DATA", 110);
+
+    display.setCursor(10, 60);
+    display.setFont(&monofonto8pt7b);
+    display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+    display.setCursor(150, 160);
+    display.print("Data Page");
+}
+
+// Map Page
+// Only works with BLE Companion app, could work standalone with WIFI, might use alot of power tho.
+void WatchyPipBoy::drawMapPage() {
+    drawEars("MAP", 158);
+
+    display.setCursor(10, 60);
+    display.setFont(&monofonto8pt7b);
+    display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
+    display.setCursor(150, 160);
+    display.print("Map Page");
+}
+
+void WatchyPipBoy::changePage(int8_t pageChange) {
+    const uint8_t numPages = sizeof(PAGES) / sizeof(PAGES[0]);
+
+    CURRENT_PAGE = (CURRENT_PAGE + pageChange + numPages) % numPages;
+}
+
+void WatchyPipBoy::handleButtonPress() {
+    Watchy::handleButtonPress();
+
+    if (guiState != WATCHFACE_STATE) return;
+
+    uint64_t wakeupBit = esp_sleep_get_ext1_wakeup_status();
+
+    if (wakeupBit & UP_BTN_MASK) {
+        changePage(1);
+        showWatchFace(false);
+        return;
+    }
+
+    if (wakeupBit & DOWN_BTN_MASK) {
+        changePage(-1);
+        showWatchFace(false);
+        return;
+    }
 }
