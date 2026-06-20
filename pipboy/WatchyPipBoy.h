@@ -15,6 +15,7 @@ class WatchyPipBoy : public Watchy{
         void drawTopBar();
         void drawBottomText();
         void drawEars(char * string, uint8_t x_offset);
+        String toString(uint32_t value);
 
         void drawStatPage();
         void drawWatchFace();
@@ -25,7 +26,10 @@ class WatchyPipBoy : public Watchy{
         void drawStatPageWeather();
 
         void drawInvPage();
+        
         void drawDataPage();
+        void drawDataPageSteps();
+
         void drawMapPage();
 
         void changePage(int8_t pageChange);

@@ -1,6 +1,8 @@
 #include "WatchyPipBoy.h"
 
 #define DARKMODE true
+// TODO Vibrate when hit
+// TODO Allow changing back button cycles through 
 #define STEPSGOAL 5000
 
 const uint8_t WEATHER_ICON_WIDTH = 48;
@@ -14,7 +16,16 @@ RTC_DATA_ATTR uint8_t CURRENT_PAGE = 0;
 // 3 = MAP
 const uint8_t PAGES[] = {0, 1, 2, 3};
 
+struct TEXT {
+    uint8_t x;    uint8_t y;
+    String text;
+};
+
 RTC_DATA_ATTR uint8_t vaultBoyNum;
+
+String WatchyPipBoy::toString(uint32_t value) {
+    return String(value);
+}
 
 void WatchyPipBoy::drawWatchFace(){
     display.fillScreen(DARKMODE ? GxEPD_BLACK : GxEPD_WHITE);
@@ -50,23 +61,25 @@ void WatchyPipBoy::drawWatchFace(){
 }
 
 // All Pages
+const TEXT TOPBAR = {22, 14, "STAT  INV  DATA  MAP"};
 void WatchyPipBoy::drawTopBar() {
     display.setFont(&monofonto8pt7b);
     display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
-    display.setCursor(22, 14);
-    display.print("STAT  INV  DATA  MAP");
+    display.setCursor(TOPBAR.x, TOPBAR.y);
+    display.print(TOPBAR.text);
 }
 
+const TEXT BOTTOMTEXT = {10, 195, "PIP-BOY 3000 ROBCO IND."};
 void WatchyPipBoy::drawBottomText() {
     display.setFont(&monofonto8pt7b);
-    display.setCursor(10, 195);
-    display.println("PIP-BOY 3000 ROBCO IND.");
+    display.setCursor(BOTTOMTEXT.x, BOTTOMTEXT.y);
+    display.println(BOTTOMTEXT.text);
 }
 
 void WatchyPipBoy::drawEars(char * string, uint8_t x_offset) {
     int16_t  x1, y1;
     uint16_t w, h;
-    display.getTextBounds(string, x_offset, 14, &x1, &y1, &w, &h);
+    display.getTextBounds(string, x_offset, TOPBAR.y, &x1, &y1, &w, &h);
 
     uint8_t line_height = y1+h+4;
 
@@ -172,14 +185,6 @@ void WatchyPipBoy::drawStatPageSteps(){
     progress = progress > 100 ? 100 : progress;
     display.drawBitmap(60, 155, gauge, 73, 10, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
     display.fillRect(60+13, 155+5, (progress/2)+5, 4, DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
-
-    //show step count
-    // display.setFont(&monofonto8pt7b);
-    // display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
-    // display.setCursor(150, 160);
-    // display.print("STEPS");
-    // display.setCursor(150, 175);
-    // display.print(stepCount);
 }
 
 void WatchyPipBoy::drawStatPageBattery(){                                                                                                                                                                            
@@ -193,10 +198,10 @@ void WatchyPipBoy::drawStatPageBattery(){
     else if(VBAT > 3.6 && VBAT <= 3.9){
         batteryLevel = 2;
     }               
-    else if(VBAT > 3.20 && VBAT <= 3.6){
+    else if(VBAT > 3.4 && VBAT <= 3.6){
         batteryLevel = 1;
     }
-    else if(VBAT <= 3.20){
+    else if(VBAT <= 3.4){
         batteryLevel = 0;
     }
 
@@ -258,13 +263,44 @@ void WatchyPipBoy::drawInvPage() {
 // More Battery, steps, general info
 void WatchyPipBoy::drawDataPage() {
     drawEars("DATA", 110);
+    drawDataPageSteps();
+}
 
-    display.setCursor(10, 60);
+const TEXT STEPS = {4, 46, "STEPS: "};
+void WatchyPipBoy::drawDataPageSteps(){
+    // reset step counter at midnight
+    if (currentTime.Hour == 0 && currentTime.Minute == 0){
+      sensor.resetStepCounter();
+    }
+
+    //draw progress bar
+    uint32_t stepCount = sensor.getCounter();
+
+    // show step count
     display.setFont(&monofonto8pt7b);
     display.setTextColor(DARKMODE ? GxEPD_WHITE : GxEPD_BLACK);
-    display.setCursor(150, 160);
-    display.print("Data Page");
+    display.setCursor(STEPS.x, STEPS.y);
+    display.print(STEPS.text);
+    int16_t  x1, y1;
+    uint16_t w, h;
+    // Print steps
+    display.getTextBounds(STEPS.text, STEPS.x, STEPS.y, &x1, &y1, &w, &h);
+    display.setCursor(x1 + w + 5, STEPS.y);
+    display.print(stepCount);
+
+    // Print stepsgoal
+    String text = toString(stepCount);
+    display.getTextBounds(text, x1 + w + 5, STEPS.y, &x1, &y1, &w, &h);
+    display.setCursor(x1 + w + 5, STEPS.y);
+    display.print("/");
+
+    display.setCursor(x1 + w + 20, STEPS.y);
+    display.print(STEPSGOAL);
+
+    // Print Battery
+    
 }
+
 
 // Map Page
 // Only works with BLE Companion app, could work standalone with WIFI, might use alot of power tho.
